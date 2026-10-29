@@ -1,0 +1,2498 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Timetable Builder Pro - FFCS Edition</title>
+    <!-- Tailwind CSS with fallback for both local and restricted environments -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        if (typeof tailwind === 'undefined') {
+            document.write('<script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        /* Smooth scrolling and sleek scrollbars */
+        * { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Dark / Theme scrollbars */
+        [data-theme="dark"] *, [data-theme="navy"] * { scrollbar-color: #475569 #0f172a; }
+        [data-theme="dark"] ::-webkit-scrollbar-track, [data-theme="navy"] ::-webkit-scrollbar-track { background: #0f172a; }
+        [data-theme="dark"] ::-webkit-scrollbar-thumb, [data-theme="navy"] ::-webkit-scrollbar-thumb { background: #334155; }
+
+        /* Table layout stability */
+        table {
+            table-layout: fixed;
+            width: 100%;
+            min-width: 1220px;
+        }
+
+        /* Diagonal stripes for clashing cells */
+        .clash-pattern {
+            background-image: repeating-linear-gradient(45deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.15) 8px, rgba(239, 68, 68, 0.28) 8px, rgba(239, 68, 68, 0.28) 16px) !important;
+            border: 2px dashed #ef4444 !important;
+        }
+
+        /* Card animations */
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-card {
+            animation: slideInUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* ========================================================
+           Theme Styles (Comprehensive & Refined Dark Mode)
+           ======================================================== */
+        [data-theme="dark"] body { 
+            background-color: #080c14; 
+            color: #f1f5f9; 
+        }
+        [data-theme="dark"] header { 
+            background-color: #0f172a; 
+            border-color: #1e293b; 
+        }
+        [data-theme="dark"] header h1 { 
+            color: #f8fafc !important; 
+        }
+        [data-theme="dark"] header p { 
+            color: #94a3b8 !important; 
+        }
+        [data-theme="dark"] aside { 
+            background-color: #0f172a; 
+            border-color: #1e293b; 
+        }
+        [data-theme="dark"] main { 
+            background-color: #080c14 !important; 
+        }
+        [data-theme="dark"] #timetableCard { 
+            background-color: #0d1322 !important; 
+            border-color: #1e293b; 
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        /* Table Dark Mode */
+        [data-theme="dark"] thead tr { 
+            background-color: #0f172a !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] thead th { 
+            border-color: #1e293b !important; 
+            background-color: #0f172a !important;
+        }
+        [data-theme="dark"] thead th div.font-bold { 
+            color: #f1f5f9 !important; 
+        }
+        [data-theme="dark"] thead th div.text-\[10px\] { 
+            color: #64748b !important; 
+        }
+        [data-theme="dark"] thead th.sticky { 
+            background-color: #0f172a !important; 
+            border-color: #1e293b !important; 
+            color: #f1f5f9 !important; 
+        }
+        [data-theme="dark"] td.cell-slot { 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] td.cell-slot:hover { 
+            background-color: rgba(255, 255, 255, 0.03) !important; 
+        }
+        [data-theme="dark"] td.cell-slot .text-slate-300 { 
+            color: #475569 !important; 
+        }
+        [data-theme="dark"] tr.hover\:bg-slate-50\/40:hover { 
+            background-color: transparent !important; 
+        }
+        [data-theme="dark"] td.sticky { 
+            background-color: #0d1322 !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] td.sticky .text-slate-900 { 
+            color: #f8fafc !important; 
+        }
+        [data-theme="dark"] td.sticky .text-slate-400 { 
+            color: #64748b !important; 
+        }
+
+        /* Lunch Column in Dark Mode (no bright vertical strip) */
+        [data-theme="dark"] td.bg-slate-100\/80,
+        [data-theme="dark"] th.bg-slate-100\/90 { 
+            background-color: #090e1a !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] td.bg-slate-100\/80 .text-slate-400 { 
+            color: #475569 !important; 
+        }
+
+        /* Plan Tabs & Toolbar */
+        [data-theme="dark"] #planTabsContainer { 
+            background-color: #0b0f19 !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] #planTools button { 
+            color: #94a3b8 !important; 
+        }
+        [data-theme="dark"] #planTools button:hover { 
+            background-color: #1e293b !important; 
+            color: #818cf8 !important; 
+        }
+        [data-theme="dark"] #deletePlanBtn { 
+            color: #f87171 !important; 
+        }
+        [data-theme="dark"] #deletePlanBtn:hover { 
+            background-color: rgba(239, 68, 68, 0.18) !important; 
+            color: #fca5a5 !important; 
+        }
+
+        /* Header Buttons */
+        [data-theme="dark"] #openCatalogBtn { 
+            background-color: rgba(99, 102, 241, 0.15) !important; 
+            color: #a5b4fc !important; 
+            border-color: rgba(99, 102, 241, 0.35) !important; 
+        }
+        [data-theme="dark"] #openCatalogBtn:hover { 
+            background-color: rgba(99, 102, 241, 0.25) !important; 
+        }
+        [data-theme="dark"] #openCustomModalBtn { 
+            background-color: #1e293b !important; 
+            color: #e2e8f0 !important; 
+            border-color: #334155 !important; 
+        }
+        [data-theme="dark"] #openCustomModalBtn:hover { 
+            background-color: #334155 !important; 
+        }
+        [data-theme="dark"] #exportMenuBtn { 
+            background-color: #1e1b4b !important; 
+            color: #e0e7ff !important; 
+            border: 1px solid #3730a3 !important; 
+        }
+        [data-theme="dark"] #exportDropdown { 
+            background-color: #0f172a !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] #exportDropdown button { 
+            color: #e2e8f0 !important; 
+        }
+        [data-theme="dark"] #exportDropdown button:hover { 
+            background-color: #1e293b !important; 
+        }
+        [data-theme="dark"] #themeToggleBtn, 
+        [data-theme="dark"] #soundToggleBtn { 
+            background-color: #1e293b !important; 
+            color: #cbd5e1 !important; 
+            border: 1px solid #334155 !important; 
+        }
+        [data-theme="dark"] #themeToggleBtn:hover, 
+        [data-theme="dark"] #soundToggleBtn:hover { 
+            background-color: #334155 !important; 
+        }
+
+        /* Sidebar Controls */
+        [data-theme="dark"] .bg-slate-50\/80 { 
+            background-color: #111827 !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] label.text-slate-600 { 
+            color: #cbd5e1 !important; 
+        }
+        [data-theme="dark"] select, 
+        [data-theme="dark"] input { 
+            background-color: #1e293b !important; 
+            color: #f8fafc !important; 
+            border-color: #334155 !important; 
+        }
+        [data-theme="dark"] select option { 
+            background-color: #111827 !important; 
+            color: #f8fafc !important; 
+        }
+        [data-theme="dark"] #courseCountPill { 
+            background-color: #1e293b !important; 
+            color: #a5b4fc !important; 
+            border: 1px solid #334155 !important; 
+        }
+        [data-theme="dark"] h2.text-slate-800 { 
+            color: #f8fafc !important; 
+        }
+        [data-theme="dark"] #clearBtn { 
+            color: #f87171 !important; 
+        }
+        [data-theme="dark"] #clearBtn:hover { 
+            color: #fca5a5 !important; 
+        }
+
+        /* Conflict Alert & Modal in Dark Mode */
+        [data-theme="dark"] #clashWarningBox {
+            background-color: rgba(159, 18, 57, 0.25) !important;
+            border-color: rgba(244, 63, 94, 0.4) !important;
+            color: #fca5a5 !important;
+        }
+        [data-theme="dark"] #clashWarningDetail {
+            color: #fecdd3 !important;
+        }
+        [data-theme="dark"] #clashModal .bg-rose-50 {
+            background-color: rgba(159, 18, 57, 0.25) !important;
+            border-color: rgba(244, 63, 94, 0.3) !important;
+            color: #fca5a5 !important;
+        }
+        [data-theme="dark"] #clashModalList > div {
+            background-color: #111827 !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        [data-theme="dark"] #clashModalList .text-rose-900 {
+            color: #f87171 !important;
+        }
+        [data-theme="dark"] #clashModalList .text-slate-600 {
+            color: #cbd5e1 !important;
+        }
+        [data-theme="dark"] #clashFindAltBtn {
+            background-color: #1e293b !important;
+            color: #f1f5f9 !important;
+        }
+        [data-theme="dark"] #clashFindAltBtn:hover {
+            background-color: #334155 !important;
+        }
+        [data-theme="dark"] #clashCancelBtn {
+            background-color: transparent !important;
+            border-color: #334155 !important;
+            color: #94a3b8 !important;
+        }
+        [data-theme="dark"] #clashCancelBtn:hover {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+
+        /* Enrolled Course Cards */
+        [data-theme="dark"] .course-card { 
+            background-color: #111827 !important; 
+            border-color: #1e293b !important; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important; 
+        }
+        [data-theme="dark"] .course-card:hover { 
+            border-color: #334155 !important; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important; 
+        }
+        [data-theme="dark"] .course-card h3 { 
+            color: #f8fafc !important; 
+        }
+        [data-theme="dark"] .course-card .text-slate-600 { 
+            color: #cbd5e1 !important; 
+        }
+        [data-theme="dark"] .course-card .text-slate-400 { 
+            color: #94a3b8 !important; 
+        }
+        [data-theme="dark"] .course-card button svg { 
+            color: #94a3b8 !important; 
+        }
+        [data-theme="dark"] .course-card button:hover svg { 
+            color: #f8fafc !important; 
+        }
+
+        /* Empty State */
+        [data-theme="dark"] #emptyState { 
+            background-color: rgba(17, 24, 39, 0.5) !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] #emptyState p.text-slate-600 { 
+            color: #e2e8f0 !important; 
+        }
+        [data-theme="dark"] #emptyState p.text-slate-400 { 
+            color: #64748b !important; 
+        }
+
+        /* Modals in Dark Mode */
+        [data-theme="dark"] #courseModal .bg-white,
+        [data-theme="dark"] #catalogModal .bg-white,
+        [data-theme="dark"] #clashModal .bg-white,
+        [data-theme="dark"] #customModal .bg-white { 
+            background-color: #0f172a !important; 
+            border-color: #1e293b !important; 
+            color: #f1f5f9 !important; 
+        }
+        [data-theme="dark"] .bg-slate-50 { 
+            background-color: #111827 !important; 
+            color: #f1f5f9 !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] #catalogCardsContainer > div { 
+            background-color: #111827 !important; 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] #catalogCardsContainer > div:hover { 
+            border-color: #334155 !important; 
+        }
+        [data-theme="dark"] #catalogCardsContainer h4 { 
+            color: #f8fafc !important; 
+        }
+        [data-theme="dark"] #catalogCardsContainer p.text-slate-600 { 
+            color: #cbd5e1 !important; 
+        }
+        [data-theme="dark"] #catalogCardsContainer .text-slate-500 { 
+            color: #94a3b8 !important; 
+        }
+        [data-theme="dark"] #catalogCardsContainer b.text-slate-700 { 
+            color: #e2e8f0 !important; 
+        }
+        [data-theme="dark"] #catalogCardsContainer .border-slate-100 { 
+            border-color: #1e293b !important; 
+        }
+        [data-theme="dark"] .catalog-filter-btn { 
+            background-color: #1e293b !important; 
+            color: #94a3b8 !important; 
+        }
+        [data-theme="dark"] .catalog-filter-btn:hover { 
+            background-color: #334155 !important; 
+            color: #f8fafc !important; 
+        }
+        [data-theme="dark"] .catalog-filter-btn.bg-indigo-600 { 
+            background-color: #4f46e5 !important; 
+            color: #ffffff !important; 
+        }
+
+        /* Print styles */
+        @media print {
+            body { background: white !important; color: black !important; overflow: visible !important; height: auto !important; }
+            aside, header, #actionToolbar, .no-print, #undoToast { display: none !important; }
+            main { padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; }
+            #timetableCard { border: none !important; box-shadow: none !important; }
+            table { min-width: 100% !important; font-size: 10px !important; }
+            .print-only { display: block !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex flex-col overflow-hidden transition-colors duration-200">
+
+    <!-- Confetti Canvas for Celebrations -->
+    <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- Top App Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 px-3 md:px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 z-30 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-black shadow-sm tracking-tight text-lg">
+                ⚡
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-base font-extrabold text-slate-900 tracking-tight leading-tight">FFCS Timetable Builder Pro</h1>
+                    <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60">VIT Matrix v2.0</span>
+                </div>
+                <p class="text-xs text-slate-500 hidden sm:block">Real-Time Conflict Radar • Smart Catalog • Multi-Plan Manager</p>
+            </div>
+        </div>
+
+        <!-- Plan Tabs & Switcher -->
+        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 overflow-x-auto max-w-[420px] shrink-0" id="planTabsContainer">
+            <!-- Dynamic plan buttons generated via JS -->
+        </div>
+
+        <!-- Plan Management Tools -->
+        <div class="flex items-center gap-0.5 text-slate-400 shrink-0" id="planTools">
+            <button id="addPlanBtn" class="p-1.5 hover:bg-slate-100 hover:text-indigo-600 rounded-lg transition" title="Create New Plan">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
+            <button id="dupPlanBtn" class="p-1.5 hover:bg-slate-100 hover:text-indigo-600 rounded-lg transition" title="Duplicate Active Plan">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+            </button>
+            <button id="renamePlanBtn" class="p-1.5 hover:bg-slate-100 hover:text-indigo-600 rounded-lg transition" title="Rename Active Plan">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+            </button>
+            <button id="deletePlanBtn" class="p-1.5 hover:bg-rose-50 hover:text-rose-600 text-slate-400 rounded-lg transition" title="Delete Active Plan">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex items-center gap-2" id="actionToolbar">
+            <!-- Course Catalog Modal Trigger -->
+            <button id="openCatalogBtn" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition border border-indigo-200/70 flex items-center gap-1.5 active:scale-95 shadow-2xs">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span>Browse Catalog</span>
+            </button>
+
+            <!-- Custom Block Trigger -->
+            <button id="openCustomModalBtn" class="hidden sm:flex px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition border border-slate-300/70 items-center gap-1.5 active:scale-95" title="Add personal block (Gym, Club, Study)">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Custom</span>
+            </button>
+
+            <!-- Export Menu Dropdown -->
+            <div class="relative inline-block text-left" id="exportDropdownContainer">
+                <button id="exportMenuBtn" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition shadow-xs flex items-center gap-1.5 active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Export</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs">
+                    <button id="exportImageBtn" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-semibold">
+                        <span>📸</span> Download Image (PNG)
+                    </button>
+                    <button id="exportIcsBtn" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-semibold">
+                        <span>📅</span> Google / Apple Calendar (.ics)
+                    </button>
+                    <button id="exportPrintBtn" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-semibold">
+                        <span>🖨️</span> Print / Save as PDF
+                    </button>
+                    <div class="border-t border-slate-100 my-1"></div>
+                    <button id="exportShareTextBtn" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-semibold">
+                        <span>📋</span> Copy Text Schedule
+                    </button>
+                </div>
+            </div>
+
+            <!-- Theme Switcher Button -->
+            <button id="themeToggleBtn" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition active:scale-90" title="Switch Theme (Light / Dark)">
+                <span id="themeIcon">🌓</span>
+            </button>
+
+            <!-- Sound Toggle Button -->
+            <button id="soundToggleBtn" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition active:scale-90" title="Toggle Sound Effects">
+                <span id="soundIcon">🔊</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Undo Toast Notification Banner -->
+    <div id="undoToast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-3 text-xs border border-slate-700">
+        <span id="undoToastText">Course removed from plan.</span>
+        <button id="undoActionBtn" class="font-extrabold text-indigo-400 hover:text-indigo-300 underline uppercase tracking-wider">Undo (Ctrl+Z)</button>
+    </div>
+
+    <!-- Main Workspace Container -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+
+        <!-- Left Sidebar: Selection & Course Roster -->
+        <aside class="w-full md:w-[380px] bg-white border-r border-slate-200 flex flex-col h-1/2 md:h-full shadow-md z-10 shrink-0">
+            <div class="p-3.5 md:p-4 flex-1 overflow-y-auto flex flex-col space-y-3.5">
+                
+                <!-- Compact Registered Credits Bar -->
+                <div class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-purple-700 text-white rounded-xl px-3.5 py-2.5 shadow-xs flex flex-col gap-1.5 shrink-0">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-200">Credits</span>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-lg font-black tracking-tight" id="totalCredits">0</span>
+                                <span class="text-[11px] text-indigo-300 font-medium">/ <span id="targetCreditsDisplay">24</span></span>
+                            </div>
+                            <span id="weeklyHoursCount" class="text-[10px] font-medium text-indigo-200 bg-white/10 px-1.5 py-0.5 rounded ml-1">0 hrs/wk</span>
+                        </div>
+                        <span id="creditStatusBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-indigo-100 border border-white/20">
+                            Need More
+                        </span>
+                    </div>
+
+                    <!-- Mini Progress Bar -->
+                    <div class="w-full bg-black/25 rounded-full h-1.5 overflow-hidden">
+                        <div id="creditProgressBar" class="bg-gradient-to-r from-emerald-400 to-teal-300 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Course Enrollment Selector -->
+                <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Quick Course Picker</span>
+                        <span class="text-[11px] text-slate-400">VIT Slot Engine</span>
+                    </div>
+
+                    <!-- Subject Dropdown -->
+                    <div>
+                        <label for="subjectSelect" class="block text-xs font-semibold text-slate-600 mb-1">Select Subject:</label>
+                        <select id="subjectSelect" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white text-xs font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-xs outline-none">
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+
+                    <!-- Faculty & Slot Dropdown -->
+                    <div>
+                        <label for="optionSelect" class="block text-xs font-semibold text-slate-600 mb-1">Faculty, Slot & Venue:</label>
+                        <select id="optionSelect" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white text-xs font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-xs outline-none">
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+
+                    <!-- Conflict Alert Box (Only displayed after clicking Add to Schedule if a clash exists) -->
+                    <div id="clashWarningBox" class="hidden p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs space-y-1 transition-all">
+                        <div class="flex items-center gap-1.5 font-bold">
+                            <span>⚠️</span>
+                            <span>Conflict Warning:</span>
+                        </div>
+                        <p id="clashWarningDetail" class="text-[11px] leading-tight text-rose-600">This selection overlaps with an already scheduled course.</p>
+                    </div>
+
+                    <!-- Add Button -->
+                    <button id="addBtn" class="w-full mt-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition transform active:scale-98 flex items-center justify-center gap-2 text-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Add to Schedule</span>
+                    </button>
+                </div>
+
+                <!-- Added Courses Roster List -->
+                <div class="flex-1 flex flex-col min-h-0">
+                    <div class="flex justify-between items-center mb-3 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm font-bold text-slate-800">Enrolled Courses</h2>
+                            <span id="courseCountPill" class="text-[11px] font-extrabold px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded-md">0</span>
+                        </div>
+                        <button id="clearBtn" class="text-xs font-bold text-rose-500 hover:text-rose-700 uppercase tracking-wider hidden transition active:scale-95">Clear All</button>
+                    </div>
+
+                    <div id="courseList" class="space-y-2.5 flex-1 overflow-y-auto pr-1 pb-4">
+                        <div id="emptyState" class="text-center py-8 px-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                            <span class="text-3xl block mb-2">📅</span>
+                            <p class="text-xs font-bold text-slate-600">Your timetable is blank</p>
+                            <p class="text-[11px] text-slate-400 mt-1">Pick a subject above or click <b>"Browse Catalog"</b> to search and add courses to your schedule.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Main Timetable Grid Area -->
+        <main class="flex-1 p-2 md:p-5 overflow-auto h-1/2 md:h-full bg-slate-100/70 flex flex-col">
+            
+            <!-- Table Card Container -->
+            <div id="timetableCard" class="bg-white rounded-2xl shadow-sm border border-slate-200/90 overflow-hidden flex flex-col flex-1 relative">
+                
+                <!-- Print Header (Only shown during print / PNG generation) -->
+                <div class="print-only p-4 border-b border-slate-200">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-lg font-black text-slate-900">Student Timetable Matrix</h1>
+                            <p class="text-xs text-slate-500">Semester Schedule • Vellore Institute of Technology</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-indigo-700" id="printCredits">Total Credits: 0</div>
+                            <div class="text-[10px] text-slate-400" id="printTimestamp">Generated on October 2026</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid Table Scrollable Wrapper -->
+                <div class="flex-1 overflow-auto relative">
+                    <table class="border-collapse w-full h-full text-slate-700" id="timetable">
+                        <thead class="sticky top-0 z-20 shadow-xs bg-slate-50/95 backdrop-blur-xs">
+                            <tr class="text-slate-600 text-[10px] md:text-xs uppercase tracking-wider text-center border-b border-slate-200">
+                                <th class="p-2.5 w-[5%] sticky left-0 z-30 bg-slate-50 border-r border-slate-200 font-black text-slate-800">
+                                    Day
+                                </th>
+                                
+                                <!-- Morning Columns (8 AM to 1:40 PM) -->
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">08:00 AM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">08:50 AM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">09:00 AM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">09:50 AM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">10:00 AM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">10:50 AM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">11:00 AM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">11:50 AM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">12:00 PM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">12:50 PM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">12:50 PM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">01:40 PM</div>
+                                </th>
+                                
+                                <!-- Lunch Column Header -->
+                                <th class="p-1 w-[3%] bg-slate-100/90 border-r border-slate-200 text-slate-400 font-extrabold text-[10px] tracking-widest">
+                                    🍽️
+                                </th>
+                                
+                                <!-- Afternoon Columns (2 PM to 7:40 PM) -->
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">02:00 PM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">02:50 PM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">03:00 PM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">03:50 PM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">04:00 PM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">04:50 PM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">05:00 PM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">05:50 PM</div>
+                                </th>
+                                <th class="p-2 border-r border-slate-200 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">06:00 PM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">06:50 PM</div>
+                                </th>
+                                <th class="p-2 w-[7.5%]">
+                                    <div class="font-bold text-slate-800">06:50 PM</div>
+                                    <div class="text-[10px] text-slate-400 font-normal">07:40 PM</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="timetableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Interactive Course Detail / Inspector Modal -->
+    <div id="courseModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden transform transition-all animate-card">
+            <div id="modalHeaderBg" class="p-5 bg-indigo-600 text-white flex justify-between items-start">
+                <div>
+                    <span id="modalTypeBadge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20 text-white">Theory + Lab</span>
+                    <h3 id="modalCourseTitle" class="text-xl font-black mt-1">Mechatronics</h3>
+                    <p id="modalFaculty" class="text-xs text-indigo-100 mt-0.5">Prof. SENTHILNATHAN N</p>
+                </div>
+                <button id="closeModalBtn" class="text-white/80 hover:text-white p-1 rounded-lg">✕</button>
+            </div>
+            
+            <div class="p-5 space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                        <span class="text-slate-400 text-[10px] font-semibold block uppercase">Theory Slot & Venue</span>
+                        <span id="modalTheorySlot" class="font-extrabold text-slate-800 text-sm">A1+TA1</span>
+                        <span id="modalTheoryVenue" class="block text-slate-500 text-[11px] mt-0.5">Room MB212</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                        <span class="text-slate-400 text-[10px] font-semibold block uppercase">Lab Slot & Venue</span>
+                        <span id="modalLabSlot" class="font-extrabold text-slate-800 text-sm">L29+L30</span>
+                        <span id="modalLabVenue" class="block text-slate-500 text-[11px] mt-0.5">Lab ALM 501B</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-slate-400 text-[10px] font-semibold block uppercase mb-1">Weekly Time Slots</span>
+                    <div id="modalSlotList" class="flex flex-wrap gap-1.5">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Custom Color Picker for Course -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-slate-400 text-[10px] font-semibold block uppercase mb-1.5">Color Accent</span>
+                    <div id="modalColorPalette" class="flex items-center gap-2">
+                        <!-- Swatches -->
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="pt-2 flex items-center justify-between gap-3">
+                    <button id="modalDropBtn" class="flex-1 py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl transition text-xs flex items-center justify-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Drop Course</span>
+                    </button>
+                    <button id="modalSwapBtn" class="flex-1 py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl transition text-xs flex items-center justify-center gap-1.5">
+                        <span>🔄</span>
+                        <span>Swap Faculty</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Catalog & Smart Free-Slot Finder Modal -->
+    <div id="catalogModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 md:p-6">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full h-[85vh] border border-slate-200 flex flex-col overflow-hidden animate-card">
+            <div class="p-5 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3 bg-slate-50 shrink-0">
+                <div>
+                    <h2 class="text-lg font-black text-slate-800">Course Catalog & Slot Explorer</h2>
+                    <p class="text-xs text-slate-500">Filter, preview, and add courses directly into your timetable</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700 bg-white px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-2xs hover:bg-slate-50 select-none">
+                        <input type="checkbox" id="hideClashingCheck" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                        <span>🛡️ Only Show Conflict-Free</span>
+                    </label>
+                    <button id="closeCatalogBtn" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg text-lg">✕</button>
+                </div>
+            </div>
+
+            <!-- Search & Filters Toolbar -->
+            <div class="p-4 border-b border-slate-200 bg-white flex flex-wrap gap-3 items-center justify-between shrink-0">
+                <div class="relative flex-1 min-w-[240px]">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">🔍</span>
+                    <input type="text" id="catalogSearchInput" placeholder="Search by subject, faculty, venue, or slot (e.g. A1, GDN)..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                </div>
+                <div class="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 sm:pb-0" id="catalogFilterPills">
+                    <button class="catalog-filter-btn px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white" data-filter="all">All</button>
+                    <button class="catalog-filter-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-600 hover:bg-slate-200" data-filter="theoryLab">Theory+Lab</button>
+                    <button class="catalog-filter-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-600 hover:bg-slate-200" data-filter="theoryOnly">Theory Only</button>
+                    <button class="catalog-filter-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-600 hover:bg-slate-200" data-filter="morning">Morning (Series 1)</button>
+                    <button class="catalog-filter-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-600 hover:bg-slate-200" data-filter="afternoon">Afternoon (Series 2)</button>
+                </div>
+            </div>
+
+            <!-- Catalog Cards Grid -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-5 bg-slate-50/50">
+                <div id="catalogCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conflict Resolution Modal -->
+    <div id="clashModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-rose-200 overflow-hidden transform transition-all animate-card">
+            <div class="p-5 bg-rose-600 text-white">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">⚠️</span>
+                    <h3 class="text-lg font-black">Slot Conflict Detected!</h3>
+                </div>
+                <p class="text-xs text-rose-100 mt-1">Two courses cannot occupy the same classroom slot.</p>
+            </div>
+            
+            <div class="p-5 space-y-4 text-xs">
+                <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-800 space-y-1.5">
+                    <span class="font-bold block">Collision Breakdown:</span>
+                    <div id="clashModalList" class="space-y-1">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <p class="text-slate-600">Choose how you want to proceed:</p>
+
+                <div class="space-y-2">
+                    <button id="clashSwapBtn" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-xs text-xs">
+                        🔄 Replace Conflicting Course with New Section
+                    </button>
+                    <button id="clashFindAltBtn" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-xs">
+                        🔍 Find Non-Clashing Faculty for this Course
+                    </button>
+                    <button id="clashCancelBtn" class="w-full py-2.5 px-4 border border-slate-300 hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition text-xs">
+                        Cancel (Keep Schedule As Is)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Event / Block Modal -->
+    <div id="customModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden animate-card">
+            <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span>📌</span>
+                    <h3 class="font-bold text-sm">Add Custom Event / Block</h3>
+                </div>
+                <button id="closeCustomModalBtn" class="text-white/70 hover:text-white">✕</button>
+            </div>
+            <div class="p-5 space-y-3.5 text-xs text-slate-700">
+                <div>
+                    <label class="block font-bold mb-1">Event Title:</label>
+                    <input type="text" id="customTitleInput" placeholder="e.g. Gym Workout, Robotics Club, FYP Study..." class="w-full p-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1">Day:</label>
+                        <select id="customDaySelect" class="w-full p-2.5 border border-slate-300 rounded-lg outline-none bg-white">
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Time Slot:</label>
+                        <select id="customSlotSelect" class="w-full p-2.5 border border-slate-300 rounded-lg outline-none bg-white">
+                            <!-- Populated with time labels -->
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Venue / Location / Notes:</label>
+                    <input type="text" id="customVenueInput" placeholder="e.g. Campus Sports Complex / Library" class="w-full p-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Color Style:</label>
+                    <div class="flex items-center gap-2" id="customColorPalette">
+                        <!-- Color buttons -->
+                    </div>
+                </div>
+                <button id="saveCustomBlockBtn" class="w-full py-2.5 mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-xs">
+                    Add Custom Block
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Raw VIT FFCS Data (Fixed: Morning Theory ➔ Afternoon Labs, Afternoon Theory ➔ Morning Labs)
+        const rawData = [
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A1+TA1", lab: "L47+L48, L51+L52", fac: "SENTHILNATHAN N", ven: "MB212", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A2+TA2", lab: "L23+L24", fac: "BOOPATHI M", ven: "MB213", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A2+TA2", lab: "L21+L22", fac: "CHINMAYA SAHU", ven: "MB218", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A1+TA1", lab: "L41+L42, L45+L46", fac: "LAKSHMI NARAYANAN V", ven: "MB219", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A1+TA1", lab: "L49+L50, L33+L34", fac: "KRISHNA S", ven: "GDN106", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A1+TA1", lab: "L55+L56, L39+L40", fac: "SATHISH GP", ven: "GDN107", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A2+TA2", lab: "L9+L10", fac: "SATHISH GP", ven: "GDN107", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A2+TA2", lab: "L29+L30", fac: "SENTHILNATHAN N", ven: "MB212", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A1+TA1", lab: "L59+L60, L35+L36", fac: "BHARANIDARAN R", ven: "MB214", labVen: "ALM 501B" },
+          { sub: "Mechatronics", credits: 4, type: "Theory+Lab", slot: "A2+TA2", lab: "L5+L6", fac: "BHARANIDARAN R", ven: "MB214", labVen: "ALM 501B" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E1+TE1", lab: "L33+L34", fac: "MANOHARAN R", ven: "GDN106", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E1+TE1", lab: "L35+L36", fac: "NIRANJANA BEHERA", ven: "GDN120", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E1+TE1", lab: "L39+L40", fac: "VINOTH JEBARAJ A", ven: "GDN121", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E2+TE2", lab: "L15+L16", fac: "MOHANKUMAR K V", ven: "MB218", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E1+TE1", lab: "L37+L38", fac: "MALLIKARJUNA REDDY D", ven: "MB219", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E2+TE2", lab: "L7+L8", fac: "VENKATESAN K", ven: "MB219", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E2+TE2", lab: "L3+L4", fac: "MANOHARAN R", ven: "GDN106", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E1+TE1", lab: "L49+L50", fac: "DEEPA A", ven: "GDN107", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E2+TE2", lab: "L19+L20", fac: "DEEPA A", ven: "GDN107", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E2+TE2", lab: "L5+L6", fac: "NIRANJANA BEHERA", ven: "GDN120", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E1+TE1", lab: "L45+L46", fac: "MOHANKUMAR K V", ven: "MB218", labVen: "MB112" },
+          { sub: "CAD & FEA", credits: 4, type: "Theory+Lab", slot: "E2+TE2", lab: "L11+L12", fac: "MURUGAN M", ven: "MB224", labVen: "MB112" },
+          { sub: "CIM", credits: 4, type: "Theory+Lab", slot: "G1+TG1", lab: "L43+L44", fac: "OYYARAVELUR", ven: "GDN120", labVen: "MB112" },
+          { sub: "CIM", credits: 4, type: "Theory+Lab", slot: "G2+TG2", lab: "L13+L14", fac: "RAJA K", ven: "GDN123", labVen: "MB112" },
+          { sub: "CIM", credits: 4, type: "Theory+Lab", slot: "G1+TG1", lab: "L55+L56", fac: "SUYA PREM ANAND P", ven: "MB213", labVen: "MB112" },
+          { sub: "Renewable", credits: 3, type: "Theory", slot: "B1", lab: "L37+L38", fac: "BALAJI K", ven: "GDN123", labVen: "GDN135" },
+          { sub: "Industrial", credits: 3, type: "Theory", slot: "B1+TB1", lab: "", fac: "JOEL J", ven: "MB211", labVen: "" },
+          { sub: "Industrial", credits: 3, type: "Theory", slot: "B2+TB2", lab: "", fac: "RAMANUJAM R", ven: "MB212", labVen: "" },
+          { sub: "Quality Control", credits: 3, type: "Theory", slot: "G2+TG2", lab: "", fac: "SRINIVASA GUPTA N", ven: "MB214", labVen: "" },
+          { sub: "Quality Control", credits: 3, type: "Theory", slot: "G1+TG1", lab: "", fac: "SRINIVASA GUPTA N", ven: "MB214", labVen: "" },
+          { sub: "MPC", credits: 3, type: "Theory", slot: "B1+TB1", lab: "", fac: "SRINIVASAN NARAYANAN", ven: "GDN107", labVen: "" },
+          { sub: "Product Design", credits: 3, type: "Theory", slot: "B2+TB2", lab: "", fac: "RAJA SEKHAR Y", ven: "MB226", labVen: "" },
+          { sub: "Product Design", credits: 3, type: "Theory", slot: "B1+TB1", lab: "", fac: "RAJA SEKHAR Y", ven: "MB214", labVen: "" },
+          { sub: "Product Design", credits: 3, type: "Theory", slot: "B2+TB2", lab: "", fac: "DEVENDIRAN S", ven: "MB227", labVen: "" },
+          { sub: "Lean Manu", credits: 3, type: "Theory", slot: "C2+TC2", lab: "", fac: "MAHESH VP", ven: "MB224", labVen: "" },
+          { sub: "Lean Manu", credits: 3, type: "Theory", slot: "C1+TC1", lab: "", fac: "MAHESH V P", ven: "MB224", labVen: "" },
+          { sub: "Supply chain", credits: 3, type: "Theory", slot: "D1+TD1", lab: "", fac: "KISHORE KUMAR MAHATO", ven: "MB218", labVen: "" },
+          { sub: "Supply chain", credits: 3, type: "Theory", slot: "D2+TD2", lab: "", fac: "KISHORE KUMAR MAHATO", ven: "MB218", labVen: "" },
+          { sub: "Supply chain", credits: 3, type: "Theory", slot: "D1+TD1", lab: "", fac: "ARAVIND RAJ S", ven: "MB214", labVen: "" },
+          { sub: "Vibration", credits: 4, type: "Theory+Lab", slot: "D1+TD1", lab: "L51+L52", fac: "NAVEEN J", ven: "GDN123", labVen: "ALM 407A" },
+          { sub: "Industrial Robotics", credits: 4, type: "Theory+Lab", slot: "B1+TB1", lab: "L33+L34", fac: "KALAIARASSAN G", ven: "GDN120", labVen: "GDN152" },
+          { sub: "Industrial Robotics", credits: 4, type: "Theory+Lab", slot: "B2+TB2", lab: "L21+L22", fac: "BABU S", ven: "MB213", labVen: "GDN152" },
+          { sub: "Mecha design", credits: 3, type: "Theory", slot: "D2+TD2", lab: "", fac: "BIKASH ROUTH", ven: "MB229", labVen: "" },
+          { sub: "Composite", credits: 3, type: "Theory", slot: "C2+TC2", lab: "", fac: "SK ARIFUL RAHAMAN", ven: "MB211", labVen: "" },
+          { sub: "Failure Analysis", credits: 3, type: "Theory", slot: "D1+TD1", lab: "", fac: "NARENDRA KUMAR U", ven: "GDN122", labVen: "" },
+          { sub: "Gas Dynamics", credits: 3, type: "Theory", slot: "B1+TB1", lab: "", fac: "THUNDIL KARUPPA RAJ R", ven: "MB227", labVen: "" },
+          { sub: "Turbomachines", credits: 3, type: "Theory", slot: "C1", lab: "L43+L44", fac: "GUNDABATTINI EDISON", ven: "CDMM104", labVen: "GDNG10" },
+          { sub: "ICE", credits: 3, type: "Theory", slot: "C1+TC1", lab: "", fac: "PORPATHAM E", ven: "MB227", labVen: "" },
+          { sub: "ICE", credits: 3, type: "Theory", slot: "C2+TC2", lab: "", fac: "KAMATCHI R", ven: "MB227", labVen: "" },
+          { sub: "Jigs fixtures", credits: 3, type: "Theory", slot: "C1+TC1", lab: "", fac: "PANDIVELAN C", ven: "GDN121", labVen: "" },
+          { sub: "Transmission systems", credits: 3, type: "Theory", slot: "G1+TG1", lab: "", fac: "BENEDICT THOMAS", ven: "GDN122", labVen: "" },
+          { sub: "Transmission systems", credits: 3, type: "Theory", slot: "G2+TG2", lab: "", fac: "BENEDICT THOMAS", ven: "GDNG07", labVen: "" },
+          { sub: "Industrial Automation", credits: 3, type: "Theory", slot: "B2+TB2", lab: "", fac: "SHIVANI GUPTA", ven: "MB211", labVen: "" },
+          { sub: "CFD", credits: 3, type: "Theory", slot: "D2", lab: "L5+L6", fac: "SATHEESH A", ven: "MB227", labVen: "MB108" },
+          { sub: "CFD", credits: 3, type: "Theory", slot: "D1", lab: "L53+L54", fac: "PADMANATHAN P", ven: "MB219", labVen: "MB108" },
+          { sub: "Industrial Revolution", credits: 3, type: "Theory", slot: "B2+TB2", lab: "", fac: "ANTHONY XAVIOR M", ven: "SJT823", labVen: "" }
+        ];
+
+        // Grid Definition
+        const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
+        const PERIOD_TIMES = [
+            { id: 0, start: "08:00 AM", end: "08:50 AM", label: "8:00 - 8:50 AM", isPm: false },
+            { id: 1, start: "09:00 AM", end: "09:50 AM", label: "9:00 - 9:50 AM", isPm: false },
+            { id: 2, start: "10:00 AM", end: "10:50 AM", label: "10:00 - 10:50 AM", isPm: false },
+            { id: 3, start: "11:00 AM", end: "11:50 AM", label: "11:00 - 11:50 AM", isPm: false },
+            { id: 4, start: "12:00 PM", end: "12:50 PM", label: "12:00 - 12:50 PM", isPm: false },
+            { id: 5, start: "12:50 PM", end: "01:40 PM", label: "12:50 - 1:40 PM", isPm: false },
+            { id: 6, start: "02:00 PM", end: "02:50 PM", label: "2:00 - 2:50 PM", isPm: true },
+            { id: 7, start: "03:00 PM", end: "03:50 PM", label: "3:00 - 3:50 PM", isPm: true },
+            { id: 8, start: "04:00 PM", end: "04:50 PM", label: "4:00 - 4:50 PM", isPm: true },
+            { id: 9, start: "05:00 PM", end: "05:50 PM", label: "5:00 - 5:50 PM", isPm: true },
+            { id: 10, start: "06:00 PM", end: "06:50 PM", label: "6:00 - 6:50 PM", isPm: true },
+            { id: 11, start: "06:50 PM", end: "07:40 PM", label: "6:50 - 7:40 PM", isPm: true }
+        ];
+
+        const amSlots = [
+            ["A1 L1", "F1 L2", "D1 L3", "TB1 L4", "TG1 L5", "L6"],
+            ["B1 L7", "G1 L8", "E1 L9", "TC1 L10", "TAA1 L11", "L12"],
+            ["C1 L13", "A1 L14", "F1 L15", "V1 L16", "V2 L17", "L18"],
+            ["D1 L19", "B1 L20", "G1 L21", "TE1 L22", "TCC1 L23", "L24"],
+            ["E1 L25", "C1 L26", "TA1 L27", "TF1 L28", "TD1 L29", "L30"]
+        ];
+
+        const pmSlots = [
+            ["A2 L31", "F2 L32", "D2 L33", "TB2 L34", "TG2 L35", "L36"],
+            ["B2 L37", "G2 L38", "E2 L39", "TC2 L40", "TAA2 L41", "L42"],
+            ["C2 L43", "A2 L44", "F2 L45", "TD2 L46", "TBB2 L47", "L48"],
+            ["D2 L49", "B2 L50", "G2 L51", "TE2 L52", "TCC2 L53", "L54"],
+            ["E2 L55", "C2 L56", "TA2 L57", "TF2 L58", "TDD2 L59", "L60"]
+        ];
+
+        // Palette with distinct, high contrast colors for both Light & Dark modes
+        const PALETTE = [
+            { 
+                bg: '#e0f2fe', border: '#0284c7', text: '#0369a1',
+                darkBg: 'rgba(2, 132, 199, 0.22)', darkBorder: '#38bdf8', darkText: '#bae6fd' 
+            }, // sky blue
+            { 
+                bg: '#dcfce7', border: '#16a34a', text: '#15803d',
+                darkBg: 'rgba(22, 163, 74, 0.22)', darkBorder: '#4ade80', darkText: '#bbf7d0' 
+            }, // green
+            { 
+                bg: '#f3e8ff', border: '#9333ea', text: '#7e22ce',
+                darkBg: 'rgba(147, 51, 234, 0.22)', darkBorder: '#c084fc', darkText: '#e9d5ff' 
+            }, // purple
+            { 
+                bg: '#ffedd5', border: '#ea580c', text: '#c2410c',
+                darkBg: 'rgba(234, 88, 12, 0.22)', darkBorder: '#fb923c', darkText: '#fed7aa' 
+            }, // orange
+            { 
+                bg: '#fce7f3', border: '#db2777', text: '#be185d',
+                darkBg: 'rgba(219, 39, 119, 0.22)', darkBorder: '#f472b6', darkText: '#fbcfe8' 
+            }, // pink
+            { 
+                bg: '#fef9c3', border: '#ca8a04', text: '#a16207',
+                darkBg: 'rgba(202, 138, 4, 0.22)', darkBorder: '#facc15', darkText: '#fef08a' 
+            }, // yellow
+            { 
+                bg: '#e0e7ff', border: '#4f46e5', text: '#4338ca',
+                darkBg: 'rgba(79, 70, 229, 0.22)', darkBorder: '#818cf8', darkText: '#c7d2fe' 
+            }, // indigo
+            { 
+                bg: '#ccfbf1', border: '#0d9488', text: '#0f766e',
+                darkBg: 'rgba(13, 148, 136, 0.22)', darkBorder: '#2dd4bf', darkText: '#99f6e4' 
+            }, // teal
+            { 
+                bg: '#fee2e2', border: '#dc2626', text: '#991b1b',
+                darkBg: 'rgba(220, 38, 38, 0.22)', darkBorder: '#f87171', darkText: '#fecaca' 
+            }, // red
+            { 
+                bg: '#f1f5f9', border: '#475569', text: '#334155',
+                darkBg: 'rgba(100, 116, 139, 0.22)', darkBorder: '#94a3b8', darkText: '#e2e8f0' 
+            }  // slate
+        ];
+
+        // Audio synthesizer via native Web Audio API
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+
+                if (type === 'add') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.08);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'remove') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(220, now + 0.15);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+                } else if (type === 'clash') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.setValueAtTime(130, now + 0.08);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'celebrate') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        g.gain.setValueAtTime(0.14, now + idx * 0.08);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.28);
+                        o.start(now + idx * 0.08);
+                        o.stop(now + idx * 0.08 + 0.32);
+                    });
+                }
+            } catch (err) {
+                console.warn("Audio Context notice:", err);
+            }
+        }
+
+        // Confetti Engine
+        function fireConfetti() {
+            const canvas = document.getElementById("confettiCanvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#6366f1', '#a855f7', '#ec4899', '#10b981', '#f59e0b', '#3b82f6'];
+
+            for (let i = 0; i < 90; i++) {
+                particles.push({
+                    x: canvas.width * (0.3 + Math.random() * 0.4),
+                    y: canvas.height * 0.2,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: -Math.random() * 10 - 4,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * 360,
+                    vrot: (Math.random() - 0.5) * 12,
+                    opacity: 1
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.4;
+                    p.rot += p.vrot;
+                    p.opacity -= 0.008;
+
+                    if (p.opacity > 0) {
+                        alive = true;
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, p.opacity);
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate((p.rot * Math.PI) / 180);
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                        ctx.restore();
+                    }
+                });
+
+                if (alive) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animate();
+        }
+
+        // Multi-Plan State Model
+        const DEFAULT_PLANS = [
+            { id: "plan_1", name: "Plan A (Primary)", schedule: [] },
+            { id: "plan_2", name: "Plan B (Backup)", schedule: [] },
+            { id: "plan_3", name: "Plan C (Experimental)", schedule: [] }
+        ];
+
+        let appPlans = JSON.parse(localStorage.getItem("timetable_plans_v2")) || DEFAULT_PLANS;
+        let activePlanId = localStorage.getItem("timetable_active_plan_v2") || "plan_1";
+        
+        let subjectColors = JSON.parse(localStorage.getItem("timetable_colors_v2")) || {};
+        let colorCounter = 0;
+        let activeFilter = 'all';
+
+        // Undo History Stack
+        const undoStack = [];
+
+        // Pre-build slot token to cell coordinates index
+        const SLOT_MAP = {};
+        function initSlotMap() {
+            DAYS.forEach((day, rIdx) => {
+                // Morning (Periods 0..5)
+                amSlots[rIdx].forEach((slotStr, pIdx) => {
+                    const tokens = slotStr.split(/\s+/).filter(Boolean);
+                    tokens.forEach(tok => {
+                        if (!SLOT_MAP[tok]) SLOT_MAP[tok] = [];
+                        SLOT_MAP[tok].push({ day: rIdx, period: pIdx, token: tok });
+                    });
+                });
+                // Afternoon (Periods 6..11)
+                pmSlots[rIdx].forEach((slotStr, pIdx) => {
+                    const tokens = slotStr.split(/\s+/).filter(Boolean);
+                    tokens.forEach(tok => {
+                        if (!SLOT_MAP[tok]) SLOT_MAP[tok] = [];
+                        SLOT_MAP[tok].push({ day: rIdx, period: pIdx + 6, token: tok });
+                    });
+                });
+            });
+        }
+
+        // Get currently active plan
+        function getActivePlan() {
+            let plan = appPlans.find(p => p.id === activePlanId);
+            if (!plan) {
+                plan = appPlans[0];
+                activePlanId = plan.id;
+            }
+            return plan;
+        }
+
+        // Save state to localStorage
+        function persistPlans() {
+            localStorage.setItem("timetable_plans_v2", JSON.stringify(appPlans));
+            localStorage.setItem("timetable_active_plan_v2", activePlanId);
+            localStorage.setItem("timetable_colors_v2", JSON.stringify(subjectColors));
+        }
+
+        // Subject color assigner (Theme-aware for Light & Dark modes)
+        function getColor(subject) {
+            if (!subjectColors[subject]) {
+                subjectColors[subject] = PALETTE[colorCounter % PALETTE.length];
+                colorCounter++;
+            }
+            let col = subjectColors[subject];
+            // Match with PALETTE for dark mode attributes
+            const matchedPalette = PALETTE.find(p => p.border === col.border) || col;
+            const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+            if (isDark && matchedPalette.darkBg) {
+                return {
+                    bg: matchedPalette.darkBg,
+                    border: matchedPalette.darkBorder,
+                    text: matchedPalette.darkText
+                };
+            }
+            return {
+                bg: matchedPalette.bg || col.bg,
+                border: matchedPalette.border || col.border,
+                text: matchedPalette.text || col.text
+            };
+        }
+
+        // Extract individual slot tokens from format "A1+TA1, L29+L30"
+        function extractTokens(str) {
+            if (!str) return [];
+            return str.split(/[\+\,\s]+/).map(s => s.trim()).filter(Boolean);
+        }
+
+        // Get all cell coordinates for a course
+        function getCourseCells(course) {
+            const theoryTokens = extractTokens(course.slot);
+            const labTokens = extractTokens(course.lab);
+            const cells = [];
+
+            theoryTokens.forEach(tok => {
+                if (SLOT_MAP[tok]) {
+                    SLOT_MAP[tok].forEach(cell => {
+                        cells.push({ ...cell, isLab: false, venue: course.ven || "TBA" });
+                    });
+                }
+            });
+
+            labTokens.forEach(tok => {
+                if (SLOT_MAP[tok]) {
+                    SLOT_MAP[tok].forEach(cell => {
+                        cells.push({ ...cell, isLab: true, venue: course.labVen || course.ven || "Lab" });
+                    });
+                }
+            });
+
+            return cells;
+        }
+
+        // Check clashes for a course against current active schedule (Robust Fix for objects without ID)
+        function findClashes(candidateCourse, currentSchedule = null) {
+            const sched = currentSchedule || getActivePlan().schedule;
+            const candidateCells = getCourseCells(candidateCourse);
+            const conflicts = [];
+
+            sched.forEach(existing => {
+                // If checking candidate against existing, don't clash with itself if editing
+                if (existing.id && candidateCourse.id && existing.id === candidateCourse.id) return;
+
+                const existingCells = getCourseCells(existing);
+                candidateCells.forEach(cCell => {
+                    existingCells.forEach(eCell => {
+                        if (cCell.day === eCell.day && cCell.period === eCell.period) {
+                            conflicts.push({
+                                day: cCell.day,
+                                dayName: DAYS[cCell.day],
+                                period: cCell.period,
+                                timeInfo: PERIOD_TIMES[cCell.period],
+                                candidateSlot: cCell.token,
+                                existingSlot: eCell.token,
+                                candidateCourse: candidateCourse,
+                                existingCourse: existing
+                            });
+                        }
+                    });
+                });
+            });
+
+            return conflicts;
+        }
+
+        // DOM Elements cache
+        const subjectSelect = document.getElementById("subjectSelect");
+        const optionSelect = document.getElementById("optionSelect");
+        const addBtn = document.getElementById("addBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const courseList = document.getElementById("courseList");
+        const emptyState = document.getElementById("emptyState");
+        const timetableBody = document.getElementById("timetableBody");
+        const totalCreditsEl = document.getElementById("totalCredits");
+        const creditProgressBar = document.getElementById("creditProgressBar");
+        const creditStatusBadge = document.getElementById("creditStatusBadge");
+        const clashWarningBox = document.getElementById("clashWarningBox");
+        const clashWarningDetail = document.getElementById("clashWarningDetail");
+        const planTabsContainer = document.getElementById("planTabsContainer");
+        const weeklyHoursCount = document.getElementById("weeklyHoursCount");
+        const courseCountPill = document.getElementById("courseCountPill");
+        const undoToast = document.getElementById("undoToast");
+
+        // App Init
+        function init() {
+            const savedTheme = localStorage.getItem("timetable_theme_v2") || "light";
+            document.documentElement.setAttribute("data-theme", savedTheme);
+            const themeIcon = document.getElementById("themeIcon");
+            if (themeIcon) themeIcon.textContent = savedTheme === "dark" ? "☀️" : "🌓";
+
+            initSlotMap();
+            buildGrid();
+            renderPlanTabs();
+            populateSubjects();
+            updateOptionList();
+            renderAll();
+            setupEventListeners();
+        }
+
+        // Build the HTML Table Grid (5 Days x 12 Slots + Lunch)
+        function buildGrid() {
+            timetableBody.innerHTML = "";
+            DAYS.forEach((day, rIdx) => {
+                const tr = document.createElement("tr");
+                tr.className = "border-b border-slate-200 hover:bg-slate-50/40 transition-colors";
+
+                // Sticky Day Column
+                const dayTd = document.createElement("td");
+                dayTd.className = "border-r border-slate-200 bg-white font-black text-slate-800 h-24 align-middle text-center sticky left-0 z-10 shadow-[1px_0_3px_rgba(0,0,0,0.04)]";
+                dayTd.innerHTML = `
+                    <div class="text-xs font-black tracking-wider text-slate-900">${day}</div>
+                    <div class="text-[9px] font-semibold text-slate-400 uppercase mt-0.5" id="dayHours-${rIdx}">0 hrs</div>
+                `;
+                tr.appendChild(dayTd);
+
+                // Morning Slots (0 to 5)
+                amSlots[rIdx].forEach((slotData, cIdx) => {
+                    const td = document.createElement("td");
+                    td.className = "border-r border-slate-200 p-1 relative h-24 align-top w-[7.5%] cell-slot transition-all duration-150 cursor-pointer";
+                    td.dataset.day = rIdx;
+                    td.dataset.period = cIdx;
+                    td.dataset.slots = slotData;
+
+                    const displaySlot = slotData.replace(/\s+/g, ' / ');
+                    td.innerHTML = `
+                        <div class="text-[9px] font-bold text-slate-300 text-left mb-1 uppercase tracking-wider flex justify-between items-center">
+                            <span>${displaySlot}</span>
+                        </div>
+                        <div class="slot-content flex flex-col gap-1 w-full relative z-10"></div>
+                    `;
+                    tr.appendChild(td);
+                });
+
+                // Lunch Break Column (spans 5 rows)
+                if (rIdx === 0) {
+                    const lunchTd = document.createElement("td");
+                    lunchTd.rowSpan = 5;
+                    lunchTd.className = "border-r border-slate-200 bg-slate-100/80 text-slate-400 font-extrabold tracking-[0.3em] align-middle text-center w-[3%] select-none";
+                    lunchTd.innerHTML = `
+                        <div class="flex flex-col items-center justify-center gap-2 py-4">
+                            <span class="text-sm">🍽️</span>
+                            <div style="writing-mode: vertical-rl; transform: rotate(180deg); margin: 0 auto;" class="text-[10px] tracking-widest text-slate-400 font-bold">LUNCH BREAK</div>
+                        </div>
+                    `;
+                    tr.appendChild(lunchTd);
+                }
+
+                // Afternoon Slots (6 to 11)
+                pmSlots[rIdx].forEach((slotData, cIdx) => {
+                    const td = document.createElement("td");
+                    td.className = "border-r border-slate-200 p-1 relative h-24 align-top w-[7.5%] cell-slot transition-all duration-150 cursor-pointer";
+                    td.dataset.day = rIdx;
+                    td.dataset.period = cIdx + 6;
+                    td.dataset.slots = slotData;
+
+                    const displaySlot = slotData.replace(/\s+/g, ' / ');
+                    td.innerHTML = `
+                        <div class="text-[9px] font-bold text-slate-300 text-left mb-1 uppercase tracking-wider flex justify-between items-center">
+                            <span>${displaySlot}</span>
+                        </div>
+                        <div class="slot-content flex flex-col gap-1 w-full relative z-10"></div>
+                    `;
+                    tr.appendChild(td);
+                });
+
+                timetableBody.appendChild(tr);
+            });
+        }
+
+        // Populate Subjects Select
+        function populateSubjects() {
+            const uniqueSubs = [...new Set(rawData.map(d => d.sub))].sort();
+            subjectSelect.innerHTML = "";
+            uniqueSubs.forEach(s => {
+                const opt = document.createElement("option");
+                opt.value = s;
+                opt.textContent = s;
+                subjectSelect.appendChild(opt);
+            });
+        }
+
+        // Update Option Select based on selected Subject
+        function updateOptionList() {
+            const selectedSub = subjectSelect.value;
+            const matches = rawData.filter(d => d.sub === selectedSub);
+            optionSelect.innerHTML = "";
+
+            matches.forEach((opt, idx) => {
+                const el = document.createElement("option");
+                el.value = idx;
+                el.dataset.course = JSON.stringify(opt);
+
+                let label = `Slot: ${opt.slot}`;
+                if (opt.lab) label += ` | Lab: ${opt.lab}`;
+                label += ` • ${opt.fac} (${opt.ven})`;
+
+                el.textContent = label;
+                optionSelect.appendChild(el);
+            });
+
+            // Keep timetable & sidebar clean: reset prior conflict warnings when switching subject
+            clearConflictWarning();
+        }
+
+        // Clears any active conflict warning box in the sidebar
+        function clearConflictWarning() {
+            if (clashWarningBox) {
+                clashWarningBox.classList.add("hidden");
+                clashWarningBox.classList.remove("animate-pulse");
+            }
+        }
+
+        // Add Course to Active Plan (Conflict check is evaluated & shown strictly here upon user click)
+        function addCourse() {
+            if (!optionSelect || !optionSelect.options || optionSelect.selectedIndex < 0) return;
+            const selectedOpt = optionSelect.options[optionSelect.selectedIndex];
+            if (!selectedOpt || !selectedOpt.dataset || !selectedOpt.dataset.course) return;
+
+            const courseData = JSON.parse(selectedOpt.dataset.course);
+
+            // Duplicate Subject Check
+            const plan = getActivePlan();
+            const existingSameSub = plan.schedule.find(c => c.sub === courseData.sub);
+            if (existingSameSub) {
+                if (existingSameSub.fac === courseData.fac && existingSameSub.slot === courseData.slot) {
+                    alert(`"${courseData.sub}" is already in your schedule!`);
+                    return;
+                }
+                if (!confirm(`You already enrolled in "${courseData.sub}" with ${existingSameSub.fac}. Do you want to switch to ${courseData.fac}?`)) {
+                    return;
+                }
+                // Save to undo stack and remove
+                undoStack.push({ action: 'replace', oldCourse: existingSameSub, planId: activePlanId });
+                plan.schedule = plan.schedule.filter(c => c.id !== existingSameSub.id);
+            }
+
+            // Conflict Check - ONLY performed & displayed when user clicks "Add to Schedule"!
+            const clashes = findClashes(courseData);
+            if (clashes.length > 0) {
+                // Show conflict warning in sidebar
+                if (clashWarningBox) {
+                    clashWarningBox.classList.remove("hidden");
+                    const clashDetails = clashes.map(c => 
+                        `Overlaps with <b>${c.existingCourse.sub}</b> (${c.existingCourse.fac}) on <b>${c.dayName} ${c.timeInfo.start}</b> [Slot ${c.candidateSlot}].`
+                    ).join('<br>');
+                    clashWarningDetail.innerHTML = clashDetails;
+
+                    // Trigger pulse animation to highlight the alert
+                    clashWarningBox.classList.remove("animate-pulse");
+                    void clashWarningBox.offsetWidth;
+                    clashWarningBox.classList.add("animate-pulse");
+                }
+
+                // Open Conflict Resolution Modal with actions (Swap / Alternative / Cancel)
+                openClashModal(courseData, clashes);
+                playSound('clash');
+                return;
+            }
+
+            // No conflict: clear any active warning box
+            clearConflictWarning();
+
+            // Valid addition
+            const newCourse = {
+                id: "course_" + Date.now().toString() + "_" + Math.random().toString(36).substr(2, 5),
+                ...courseData
+            };
+
+            plan.schedule.push(newCourse);
+            persistPlans();
+            renderAll();
+            playSound('add');
+
+            // Check if user hit the credit target
+            const totalCredits = plan.schedule.reduce((sum, c) => sum + (c.credits || 0), 0);
+            if (totalCredits >= 20 && totalCredits <= 27) {
+                fireConfetti();
+                playSound('celebrate');
+            }
+        }
+
+        // Drop Course with Undo Support
+        function removeCourse(id) {
+            const plan = getActivePlan();
+            const course = plan.schedule.find(c => c.id === id);
+            if (!course) return;
+
+            undoStack.push({ action: 'remove', course: course, planId: activePlanId });
+            plan.schedule = plan.schedule.filter(c => c.id !== id);
+            persistPlans();
+            renderAll();
+            playSound('remove');
+            showUndoToast(`Dropped "${course.sub}"`);
+        }
+
+        function triggerUndo() {
+            if (undoStack.length === 0) return;
+            const item = undoStack.pop();
+            const plan = appPlans.find(p => p.id === item.planId) || getActivePlan();
+
+            if (item.action === 'remove') {
+                plan.schedule.push(item.course);
+            } else if (item.action === 'replace') {
+                plan.schedule.push(item.oldCourse);
+            }
+
+            persistPlans();
+            renderAll();
+            hideUndoToast();
+            playSound('add');
+        }
+
+        function showUndoToast(msg) {
+            document.getElementById("undoToastText").textContent = msg;
+            undoToast.classList.remove("hidden");
+            setTimeout(hideUndoToast, 6000);
+        }
+
+        function hideUndoToast() {
+            undoToast.classList.add("hidden");
+        }
+
+        // Clear All
+        function clearAll() {
+            if (!confirm("Are you sure you want to clear your current plan schedule?")) return;
+            const plan = getActivePlan();
+            plan.schedule = [];
+            persistPlans();
+            renderAll();
+            playSound('remove');
+        }
+
+        // Render Plan Tabs
+        function renderPlanTabs() {
+            planTabsContainer.innerHTML = "";
+            const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+
+            appPlans.forEach(plan => {
+                const tab = document.createElement("div");
+                const isActive = plan.id === activePlanId;
+                
+                let activeClasses = isDark 
+                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-500" 
+                    : "bg-white text-indigo-700 shadow-xs border border-slate-200";
+                let inactiveClasses = isDark 
+                    ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60" 
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60";
+
+                tab.className = `group px-3 py-1 text-xs font-bold rounded-lg transition active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap select-none ${
+                    isActive ? activeClasses : inactiveClasses
+                }`;
+
+                tab.innerHTML = `
+                    <span>${plan.name}</span>
+                    <span class="text-[10px] ${isActive ? (isDark ? 'text-indigo-200' : 'text-indigo-600') : 'opacity-60'}">(${plan.schedule.length})</span>
+                    ${appPlans.length > 1 ? `
+                        <button class="plan-del-tab-btn opacity-40 hover:opacity-100 hover:text-rose-400 p-0.5 rounded transition ml-1" title="Delete ${plan.name}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    ` : ''}
+                `;
+
+                tab.onclick = (e) => {
+                    if (e.target.closest('.plan-del-tab-btn')) {
+                        e.stopPropagation();
+                        deletePlan(plan.id);
+                        return;
+                    }
+                    activePlanId = plan.id;
+                    persistPlans();
+                    renderPlanTabs();
+                    renderAll();
+                };
+
+                planTabsContainer.appendChild(tab);
+            });
+        }
+
+        // Plan Management Handlers
+        function createNewPlan() {
+            const name = prompt("Enter a name for the new timetable plan:", `Plan ${String.fromCharCode(65 + appPlans.length)}`);
+            if (!name) return;
+            const newPlan = {
+                id: "plan_" + Date.now(),
+                name: name.trim(),
+                schedule: []
+            };
+            appPlans.push(newPlan);
+            activePlanId = newPlan.id;
+            persistPlans();
+            renderPlanTabs();
+            renderAll();
+            playSound('add');
+        }
+
+        function duplicateCurrentPlan() {
+            const cur = getActivePlan();
+            const newPlan = {
+                id: "plan_" + Date.now(),
+                name: `${cur.name} (Copy)`,
+                schedule: JSON.parse(JSON.stringify(cur.schedule))
+            };
+            appPlans.push(newPlan);
+            activePlanId = newPlan.id;
+            persistPlans();
+            renderPlanTabs();
+            renderAll();
+            playSound('add');
+        }
+
+        function renameCurrentPlan() {
+            const cur = getActivePlan();
+            const name = prompt("Enter new name for this plan:", cur.name);
+            if (!name) return;
+            cur.name = name.trim();
+            persistPlans();
+            renderPlanTabs();
+        }
+
+        function deletePlan(planId = activePlanId) {
+            if (appPlans.length <= 1) {
+                alert("You cannot delete the only remaining plan. Use 'Clear All' in the sidebar if you wish to empty its schedule.");
+                return;
+            }
+
+            const targetPlan = appPlans.find(p => p.id === planId) || getActivePlan();
+            if (!confirm(`Are you sure you want to delete "${targetPlan.name}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            const deletedIdx = appPlans.findIndex(p => p.id === targetPlan.id);
+            appPlans = appPlans.filter(p => p.id !== targetPlan.id);
+
+            if (activePlanId === targetPlan.id) {
+                const nextIdx = Math.max(0, Math.min(deletedIdx, appPlans.length - 1));
+                activePlanId = appPlans[nextIdx].id;
+            }
+
+            persistPlans();
+            renderPlanTabs();
+            renderAll();
+            playSound('remove');
+        }
+
+        // Render Grid and Roster
+        function renderAll() {
+            const plan = getActivePlan();
+            const schedule = plan.schedule;
+
+            renderSidebar(schedule);
+            renderGridContent(schedule);
+            updateOptionList();
+        }
+
+        // Render Sidebar Cards
+        function renderSidebar(schedule) {
+            const totalCredits = schedule.reduce((sum, c) => sum + (c.credits || 0), 0);
+            totalCreditsEl.textContent = totalCredits;
+            document.getElementById("printCredits").textContent = `Total Credits: ${totalCredits}`;
+            document.getElementById("printTimestamp").textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+
+            // Calculate weekly hours
+            let weeklyHours = 0;
+            const occupied = new Set();
+            schedule.forEach(course => {
+                const cells = getCourseCells(course);
+                cells.forEach(c => occupied.add(`${c.day}_${c.period}`));
+            });
+            weeklyHours = occupied.size;
+            if (weeklyHoursCount) {
+                weeklyHoursCount.textContent = `${weeklyHours} hrs/wk`;
+            }
+
+            // Update Progress bar
+            const pct = Math.min(100, Math.round((totalCredits / 24) * 100));
+            creditProgressBar.style.width = `${pct}%`;
+
+            if (totalCredits < 16) {
+                creditStatusBadge.textContent = "Under Min (16)";
+                creditStatusBadge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/30 text-amber-100 border border-amber-400/30";
+            } else if (totalCredits <= 24) {
+                creditStatusBadge.textContent = "Optimal Load";
+                creditStatusBadge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/30 text-emerald-100 border border-emerald-400/30";
+            } else if (totalCredits <= 27) {
+                creditStatusBadge.textContent = "Near Max (27)";
+                creditStatusBadge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/30 text-blue-100 border border-blue-400/30";
+            } else {
+                creditStatusBadge.textContent = "Overload Limit!";
+                creditStatusBadge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white border border-rose-300";
+            }
+
+            courseCountPill.textContent = schedule.length;
+
+            if (schedule.length > 0) {
+                emptyState.style.display = 'none';
+                clearBtn.style.display = 'block';
+            } else {
+                emptyState.style.display = 'block';
+                clearBtn.style.display = 'none';
+            }
+
+            // Clean list
+            const cards = courseList.querySelectorAll('.course-card');
+            cards.forEach(c => c.remove());
+
+            // Build course cards cleanly
+            schedule.forEach(course => {
+                const color = getColor(course.sub);
+                const card = document.createElement("div");
+                card.className = "course-card bg-white border rounded-xl p-3 shadow-xs flex flex-col relative overflow-hidden group hover:shadow-md transition-all animate-card";
+                card.style.borderColor = color.border;
+
+                let slotSummary = course.slot;
+                if (course.lab) slotSummary += ` • Lab: ${course.lab}`;
+
+                card.innerHTML = `
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5" style="background-color: ${color.border}"></div>
+                    <div class="pl-2 flex justify-between items-start">
+                        <div class="pr-2 flex-1 cursor-pointer" onclick="openCourseModal('${course.id}')">
+                            <div class="flex items-center gap-1.5">
+                                <h3 class="font-extrabold text-xs text-slate-800 leading-tight">${course.sub}</h3>
+                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded" style="background-color:${color.bg}; color:${color.text}">${course.credits || 0} Cr</span>
+                            </div>
+                            <div class="text-[11px] text-slate-600 font-semibold mt-1 truncate">${course.fac || "Self"}</div>
+                            <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                <span>Slots: <b>${slotSummary}</b></span>
+                                <span>•</span>
+                                <span>Ven: ${course.ven || "TBA"}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="openCourseModal('${course.id}')" class="text-slate-400 hover:text-indigo-600 p-1 rounded-md transition" title="Inspect & Options">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                            <button onclick="removeCourse('${course.id}')" class="text-slate-400 hover:text-rose-500 p-1 rounded-md transition" title="Drop Course">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                courseList.appendChild(card);
+            });
+        }
+
+        // Render Grid Cells with courses & detect cell clashes
+        function renderGridContent(schedule) {
+            // Clear all cells
+            document.querySelectorAll('.slot-content').forEach(c => c.innerHTML = "");
+            document.querySelectorAll('.cell-slot').forEach(td => {
+                td.classList.remove('clash-pattern');
+                td.style.backgroundColor = '';
+            });
+
+            // Map courses into 2D cell occupancy matrix: occupancy[day][period] = []
+            const occupancy = Array.from({ length: 5 }, () => Array.from({ length: 12 }, () => []));
+
+            schedule.forEach(course => {
+                const cells = getCourseCells(course);
+                cells.forEach(c => {
+                    occupancy[c.day][c.period].push({
+                        course: course,
+                        isLab: c.isLab,
+                        token: c.token,
+                        venue: c.venue
+                    });
+                });
+            });
+
+            // Render each cell
+            DAYS.forEach((_, dayIdx) => {
+                let dailyHours = 0;
+                for (let pIdx = 0; pIdx < 12; pIdx++) {
+                    const entries = occupancy[dayIdx][pIdx];
+                    const td = document.querySelector(`td[data-day="${dayIdx}"][data-period="${pIdx}"]`);
+                    if (!td) continue;
+                    const container = td.querySelector('.slot-content');
+
+                    if (entries.length > 0) {
+                        dailyHours++;
+                    }
+
+                    if (entries.length > 1) {
+                        // CLASH in this cell!
+                        td.classList.add('clash-pattern');
+                        const clashBadge = document.createElement("div");
+                        clashBadge.className = "bg-rose-600 text-white font-extrabold text-[9px] px-1.5 py-0.5 rounded shadow-sm flex items-center justify-between mb-1";
+                        clashBadge.innerHTML = `<span>⚠️ CLASH (${entries.length})</span>`;
+                        container.appendChild(clashBadge);
+                    }
+
+                    entries.forEach(item => {
+                        const course = item.course;
+                        const color = getColor(course.sub);
+                        const block = document.createElement("div");
+                        block.className = "rounded-md px-1.5 py-1 text-[10px] leading-tight shadow-xs mb-1 cursor-pointer transition-transform hover:scale-[1.03] select-none border-l-[3px]";
+                        block.style.backgroundColor = color.bg;
+                        block.style.borderLeftColor = color.border;
+                        block.style.color = color.text;
+
+                        const tag = item.isLab ? 'Lab' : 'Th';
+                        block.innerHTML = `
+                            <div class="font-extrabold truncate" title="${course.sub}">${course.sub}</div>
+                            <div class="text-[9px] opacity-90 truncate mt-0.5 flex items-center justify-between">
+                                <span>${item.venue} (${tag})</span>
+                                <span class="font-bold text-[8px] opacity-75">${item.token}</span>
+                            </div>
+                        `;
+
+                        block.onclick = (e) => {
+                            e.stopPropagation();
+                            openCourseModal(course.id);
+                        };
+
+                        container.appendChild(block);
+                    });
+                }
+
+                // Update day hours counter
+                const hoursLabel = document.getElementById(`dayHours-${dayIdx}`);
+                if (hoursLabel) hoursLabel.textContent = `${dailyHours} hrs`;
+            });
+        }
+
+        // Open Course Inspector Modal
+        function openCourseModal(courseId) {
+            const plan = getActivePlan();
+            const course = plan.schedule.find(c => c.id === courseId);
+            if (!course) return;
+
+            const modal = document.getElementById("courseModal");
+            const color = getColor(course.sub);
+
+            document.getElementById("modalHeaderBg").style.backgroundColor = color.border;
+            document.getElementById("modalCourseTitle").textContent = course.sub;
+            document.getElementById("modalFaculty").textContent = course.fac ? `Prof. ${course.fac}` : "Custom Activity";
+            document.getElementById("modalTypeBadge").textContent = `${course.credits || 0} Credits • ${course.type || "Theory"}`;
+            document.getElementById("modalTheorySlot").textContent = course.slot || "N/A";
+            document.getElementById("modalTheoryVenue").textContent = course.ven ? `Room ${course.ven}` : "No Venue";
+            document.getElementById("modalLabSlot").textContent = course.lab || "None";
+            document.getElementById("modalLabVenue").textContent = course.labVen ? `Lab ${course.labVen}` : "None";
+
+            // Populate slot breakdown
+            const slotListEl = document.getElementById("modalSlotList");
+            slotListEl.innerHTML = "";
+            const cells = getCourseCells(course);
+            cells.forEach(c => {
+                const chip = document.createElement("span");
+                chip.className = "px-2 py-1 rounded-md text-[10px] font-bold bg-white border border-slate-200 text-slate-700 shadow-2xs";
+                chip.textContent = `${DAYS[c.day]} ${PERIOD_TIMES[c.period].start} (${c.token})`;
+                slotListEl.appendChild(chip);
+            });
+
+            // Color Palette Selector
+            const paletteEl = document.getElementById("modalColorPalette");
+            paletteEl.innerHTML = "";
+            PALETTE.forEach(p => {
+                const b = document.createElement("button");
+                b.className = `w-6 h-6 rounded-full border-2 transition transform hover:scale-110 ${p.border === color.border ? 'border-slate-900 scale-110' : 'border-transparent'}`;
+                b.style.backgroundColor = p.border;
+                b.onclick = () => {
+                    subjectColors[course.sub] = p;
+                    persistPlans();
+                    renderAll();
+                    openCourseModal(course.id);
+                };
+                paletteEl.appendChild(b);
+            });
+
+            // Drop button
+            document.getElementById("modalDropBtn").onclick = () => {
+                removeCourse(course.id);
+                modal.classList.add("hidden");
+            };
+
+            // Swap button
+            document.getElementById("modalSwapBtn").onclick = () => {
+                modal.classList.add("hidden");
+                openCatalogModal(course.sub);
+            };
+
+            modal.classList.remove("hidden");
+        }
+
+        // Open Conflict Resolution Modal
+        function openClashModal(candidateCourse, clashes) {
+            const modal = document.getElementById("clashModal");
+            const list = document.getElementById("clashModalList");
+            list.innerHTML = "";
+
+            clashes.forEach(c => {
+                const item = document.createElement("div");
+                item.className = "p-2 bg-white rounded-lg border border-rose-300 text-[11px] font-medium";
+                item.innerHTML = `
+                    <div class="font-bold text-rose-900">${c.dayName} @ ${c.timeInfo.start}</div>
+                    <div class="text-slate-600 mt-0.5">
+                        <span class="text-indigo-600 font-bold">${candidateCourse.sub}</span> (${c.candidateSlot}) clashes with 
+                        <span class="text-rose-600 font-bold">${c.existingCourse.sub}</span> (${c.existingSlot})
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+
+            // Action: Swap
+            document.getElementById("clashSwapBtn").onclick = () => {
+                const plan = getActivePlan();
+                const removeIds = [...new Set(clashes.map(cl => cl.existingCourse.id))];
+                
+                // Save old courses to undo stack
+                clashes.forEach(cl => {
+                    undoStack.push({ action: 'remove', course: cl.existingCourse, planId: activePlanId });
+                });
+
+                plan.schedule = plan.schedule.filter(c => !removeIds.includes(c.id));
+                plan.schedule.push({ id: "course_" + Date.now().toString() + "_" + Math.random().toString(36).substr(2, 5), ...candidateCourse });
+                persistPlans();
+                renderAll();
+                modal.classList.add("hidden");
+                playSound('add');
+            };
+
+            // Action: Find Alternative
+            document.getElementById("clashFindAltBtn").onclick = () => {
+                modal.classList.add("hidden");
+                openCatalogModal(candidateCourse.sub);
+            };
+
+            // Action: Cancel
+            document.getElementById("clashCancelBtn").onclick = () => {
+                modal.classList.add("hidden");
+            };
+
+            modal.classList.remove("hidden");
+        }
+
+        // Open Course Catalog Modal
+        function openCatalogModal(searchQuery = "") {
+            const modal = document.getElementById("catalogModal");
+            const searchInput = document.getElementById("catalogSearchInput");
+            if (searchQuery) searchInput.value = searchQuery;
+            renderCatalogCards();
+            modal.classList.remove("hidden");
+        }
+
+        // Render Cards in Catalog Modal
+        function renderCatalogCards() {
+            const container = document.getElementById("catalogCardsContainer");
+            const query = (document.getElementById("catalogSearchInput").value || "").toLowerCase().trim();
+            const hideClashes = document.getElementById("hideClashingCheck").checked;
+            const currentSchedule = getActivePlan().schedule;
+
+            container.innerHTML = "";
+
+            let filtered = rawData.filter(item => {
+                const matchQuery = !query || 
+                    item.sub.toLowerCase().includes(query) ||
+                    item.fac.toLowerCase().includes(query) ||
+                    item.ven.toLowerCase().includes(query) ||
+                    item.slot.toLowerCase().includes(query);
+
+                if (!matchQuery) return false;
+
+                if (activeFilter === 'theoryLab' && item.type !== 'Theory+Lab') return false;
+                if (activeFilter === 'theoryOnly' && item.type !== 'Theory') return false;
+                if (activeFilter === 'morning' && !item.slot.includes('1')) return false;
+                if (activeFilter === 'afternoon' && !item.slot.includes('2')) return false;
+
+                if (hideClashes) {
+                    const clashes = findClashes(item, currentSchedule);
+                    if (clashes.length > 0) return false;
+                }
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-slate-400">
+                        <span class="text-4xl block mb-2">🔍</span>
+                        <p class="font-bold text-sm text-slate-600">No matching courses found</p>
+                        <p class="text-xs text-slate-400 mt-1">Try relaxing filters or search terms.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(course => {
+                const color = getColor(course.sub);
+                const clashes = findClashes(course, currentSchedule);
+                const isClashing = clashes.length > 0;
+                const isEnrolled = currentSchedule.some(c => c.sub === course.sub && c.fac === course.fac && c.slot === course.slot);
+
+                const card = document.createElement("div");
+                card.className = "bg-white rounded-xl border border-slate-200 p-3.5 shadow-xs flex flex-col justify-between hover:shadow-md transition-all";
+                
+                let statusBadge = "";
+                if (isEnrolled) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">✅ Enrolled</span>`;
+                } else if (isClashing) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800">⚠️ ${clashes.length} Clash</span>`;
+                } else {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700">✨ Available</span>`;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-1.5">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded" style="background-color:${color.bg}; color:${color.text}">${course.credits} Credits</span>
+                            ${statusBadge}
+                        </div>
+                        <h4 class="font-black text-sm text-slate-800 leading-tight">${course.sub}</h4>
+                        <p class="text-xs text-slate-600 font-semibold mt-1">${course.fac}</p>
+                        
+                        <div class="mt-2.5 pt-2 border-t border-slate-100 space-y-1 text-[11px] text-slate-500">
+                            <div>Theory: <b class="text-slate-700">${course.slot}</b> (${course.ven})</div>
+                            ${course.lab ? `<div>Lab: <b class="text-slate-700">${course.lab}</b> (${course.labVen || "Lab"})</div>` : ""}
+                            ${course.lab ? `<div class="text-[10px] font-semibold text-indigo-600 mt-1">${course.slot.includes('1') ? '☀️ Morning Theory ➔ 🌆 Afternoon Lab' : '🌆 Afternoon Theory ➔ ☀️ Morning Lab'}</div>` : ""}
+                        </div>
+                    </div>
+
+                    <div class="mt-3 pt-2">
+                        ${isEnrolled 
+                            ? `<button disabled class="w-full py-2 bg-slate-100 text-slate-400 font-bold rounded-lg text-xs cursor-not-allowed">Added to Plan</button>`
+                            : `<button class="catalog-add-btn w-full py-2 ${isClashing ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200' : 'bg-indigo-600 hover:bg-indigo-700 text-white'} font-bold rounded-lg text-xs transition active:scale-95">
+                                ${isClashing ? '⚠️ Add (Resolve Clash)' : '+ Add to Schedule'}
+                               </button>`
+                        }
+                    </div>
+                `;
+
+                // Add button handler
+                const btn = card.querySelector('.catalog-add-btn');
+                if (btn) {
+                    btn.onclick = () => {
+                        document.getElementById("catalogModal").classList.add("hidden");
+                        if (isClashing) {
+                            openClashModal(course, clashes);
+                        } else {
+                            const plan = getActivePlan();
+                            plan.schedule.push({ id: "course_" + Date.now().toString() + "_" + Math.random().toString(36).substr(2, 5), ...course });
+                            persistPlans();
+                            renderAll();
+                            playSound('add');
+                        }
+                    };
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        // Export Timetable to iCalendar (.ics)
+        function exportICS() {
+            const plan = getActivePlan();
+            if (plan.schedule.length === 0) {
+                alert("Your timetable is empty! Add courses before exporting.");
+                return;
+            }
+
+            const baseMonday = new Date();
+            baseMonday.setDate(baseMonday.getDate() + ((1 + 7 - baseMonday.getDay()) % 7 || 7));
+
+            let ics = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//Interactive Timetable Builder Pro//EN",
+                "CALSCALE:GREGORIAN",
+                "METHOD:PUBLISH",
+                "X-WR-CALNAME:University Timetable"
+            ];
+
+            plan.schedule.forEach(course => {
+                const cells = getCourseCells(course);
+                cells.forEach((c, idx) => {
+                    const p = PERIOD_TIMES[c.period];
+                    const eventDate = new Date(baseMonday);
+                    eventDate.setDate(baseMonday.getDate() + c.day);
+
+                    const [sHour, sMin] = parseTime(p.start);
+                    const [eHour, eMin] = parseTime(p.end);
+
+                    const dtStart = formatIcsDate(eventDate, sHour, sMin);
+                    const dtEnd = formatIcsDate(eventDate, eHour, eMin);
+
+                    ics.push(
+                        "BEGIN:VEVENT",
+                        `UID:slot-${course.id}-${c.day}-${c.period}-${idx}@timetable.app`,
+                        `SUMMARY:${course.sub} (${c.token})`,
+                        `LOCATION:${c.venue}`,
+                        `DESCRIPTION:Faculty: ${course.fac || 'TBA'}\\nSlot: ${c.token}\\nCredits: ${course.credits || 0}`,
+                        `DTSTART:${dtStart}`,
+                        `DTEND:${dtEnd}`,
+                        "RRULE:FREQ=WEEKLY;UNTIL=20261231T235959Z",
+                        "STATUS:CONFIRMED",
+                        "END:VEVENT"
+                    );
+                });
+            });
+
+            ics.push("END:VCALENDAR");
+
+            const blob = new Blob([ics.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Timetable_${plan.name.replace(/\s+/g, '_')}.ics`;
+            link.click();
+            playSound('add');
+        }
+
+        function parseTime(tStr) {
+            const [time, ampm] = tStr.split(" ");
+            let [h, m] = time.split(":").map(Number);
+            if (ampm === "PM" && h < 12) h += 12;
+            if (ampm === "AM" && h === 12) h = 0;
+            return [h, m];
+        }
+
+        function formatIcsDate(date, h, m) {
+            const Y = date.getFullYear();
+            const M = String(date.getMonth() + 1).padStart(2, '0');
+            const D = String(date.getDate()).padStart(2, '0');
+            const H = String(h).padStart(2, '0');
+            const Min = String(m).padStart(2, '0');
+            return `${Y}${M}${D}T${H}${Min}00`;
+        }
+
+        // Export Timetable as High-Res PNG Image
+        function exportPNG() {
+            const plan = getActivePlan();
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            
+            canvas.width = 1920;
+            canvas.height = 1080;
+
+            // Background
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Header Banner
+            ctx.fillStyle = "#4f46e5";
+            ctx.fillRect(0, 0, canvas.width, 100);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 34px sans-serif";
+            ctx.fillText("⚡ FFCS Timetable Matrix Pro", 50, 60);
+
+            ctx.font = "normal 18px sans-serif";
+            ctx.fillStyle = "#c7d2fe";
+            const totalCredits = plan.schedule.reduce((s, c) => s + (c.credits || 0), 0);
+            ctx.fillText(`Plan: ${plan.name}  |  Total Credits: ${totalCredits}  |  Generated: ${new Date().toLocaleDateString()}`, 650, 60);
+
+            // Table Grid constants
+            const startX = 50;
+            const startY = 140;
+            const gridW = canvas.width - 100;
+            const gridH = canvas.height - 200;
+            const colW = gridW / 14;
+            const rowH = gridH / 6;
+
+            // Draw Header Row
+            ctx.fillStyle = "#f8fafc";
+            ctx.fillRect(startX, startY, gridW, rowH * 0.7);
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.strokeRect(startX, startY, gridW, rowH * 0.7);
+
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 16px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Day", startX + colW * 0.5, startY + 38);
+
+            let colIndex = 1;
+            for (let i = 0; i < 6; i++) {
+                ctx.fillText(PERIOD_TIMES[i].start, startX + colW * (colIndex + 0.5), startY + 30);
+                ctx.font = "normal 12px sans-serif";
+                ctx.fillStyle = "#64748b";
+                ctx.fillText(PERIOD_TIMES[i].end, startX + colW * (colIndex + 0.5), startY + 48);
+                ctx.font = "bold 16px sans-serif";
+                ctx.fillStyle = "#1e293b";
+                colIndex++;
+            }
+
+            // Lunch Header
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "bold 14px sans-serif";
+            ctx.fillText("LUNCH", startX + colW * (colIndex + 0.5), startY + 38);
+            colIndex++;
+
+            // Afternoon Headers
+            for (let i = 6; i < 12; i++) {
+                ctx.font = "bold 16px sans-serif";
+                ctx.fillStyle = "#1e293b";
+                ctx.fillText(PERIOD_TIMES[i].start, startX + colW * (colIndex + 0.5), startY + 30);
+                ctx.font = "normal 12px sans-serif";
+                ctx.fillStyle = "#64748b";
+                ctx.fillText(PERIOD_TIMES[i].end, startX + colW * (colIndex + 0.5), startY + 48);
+                colIndex++;
+            }
+
+            // Draw Days and Slots
+            const dayYStart = startY + rowH * 0.7;
+            const dayRowH = (gridH - rowH * 0.7) / 5;
+
+            // Map occupancy
+            const occupancy = Array.from({ length: 5 }, () => Array.from({ length: 12 }, () => []));
+            plan.schedule.forEach(course => {
+                const cells = getCourseCells(course);
+                cells.forEach(c => occupancy[c.day][c.period].push({ course, isLab: c.isLab, venue: c.venue, token: c.token }));
+            });
+
+            DAYS.forEach((d, dayIdx) => {
+                const curY = dayYStart + dayIdx * dayRowH;
+
+                ctx.fillStyle = "#f1f5f9";
+                ctx.fillRect(startX, curY, colW, dayRowH);
+                ctx.strokeStyle = "#cbd5e1";
+                ctx.strokeRect(startX, curY, colW, dayRowH);
+
+                ctx.fillStyle = "#0f172a";
+                ctx.font = "bold 20px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(d, startX + colW * 0.5, curY + dayRowH * 0.5 + 7);
+
+                // Morning
+                for (let p = 0; p < 6; p++) {
+                    const cX = startX + colW * (p + 1);
+                    ctx.strokeStyle = "#e2e8f0";
+                    ctx.strokeRect(cX, curY, colW, dayRowH);
+
+                    const entries = occupancy[dayIdx][p];
+                    if (entries.length > 0) {
+                        const item = entries[0];
+                        const color = getColor(item.course.sub);
+                        ctx.fillStyle = color.bg;
+                        ctx.fillRect(cX + 2, curY + 2, colW - 4, dayRowH - 4);
+                        ctx.strokeStyle = color.border;
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(cX + 2, curY + 2, colW - 4, dayRowH - 4);
+
+                        ctx.fillStyle = color.text;
+                        ctx.font = "bold 13px sans-serif";
+                        ctx.fillText(item.course.sub, cX + colW * 0.5, curY + 30);
+                        ctx.font = "normal 11px sans-serif";
+                        ctx.fillText(`${item.venue} (${item.token})`, cX + colW * 0.5, curY + 52);
+                    }
+                }
+
+                // Lunch column (drawn once)
+                if (dayIdx === 0) {
+                    const lX = startX + colW * 7;
+                    ctx.fillStyle = "#f8fafc";
+                    ctx.fillRect(lX, dayYStart, colW, dayRowH * 5);
+                    ctx.strokeStyle = "#cbd5e1";
+                    ctx.strokeRect(lX, dayYStart, colW, dayRowH * 5);
+                }
+
+                // Afternoon
+                for (let p = 6; p < 12; p++) {
+                    const cX = startX + colW * (p + 2);
+                    ctx.strokeStyle = "#e2e8f0";
+                    ctx.strokeRect(cX, curY, colW, dayRowH);
+
+                    const entries = occupancy[dayIdx][p];
+                    if (entries.length > 0) {
+                        const item = entries[0];
+                        const color = getColor(item.course.sub);
+                        ctx.fillStyle = color.bg;
+                        ctx.fillRect(cX + 2, curY + 2, colW - 4, dayRowH - 4);
+                        ctx.strokeStyle = color.border;
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(cX + 2, curY + 2, colW - 4, dayRowH - 4);
+
+                        ctx.fillStyle = color.text;
+                        ctx.font = "bold 13px sans-serif";
+                        ctx.fillText(item.course.sub, cX + colW * 0.5, curY + 30);
+                        ctx.font = "normal 11px sans-serif";
+                        ctx.fillText(`${item.venue} (${item.token})`, cX + colW * 0.5, curY + 52);
+                    }
+                }
+            });
+
+            const link = document.createElement("a");
+            link.download = `Timetable_${plan.name.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            playSound('add');
+        }
+
+        // Copy Shareable Text Summary
+        function copyTextSchedule() {
+            const plan = getActivePlan();
+            let text = `📅 Timetable Schedule (${plan.name})\n`;
+            text += `Total Credits: ${plan.schedule.reduce((s, c) => s + (c.credits || 0), 0)}\n\n`;
+            
+            plan.schedule.forEach(c => {
+                text += `• ${c.sub} (${c.credits} Cr) | Fac: ${c.fac} | Slot: ${c.slot} | Ven: ${c.ven}`;
+                if (c.lab) text += ` | Lab: ${c.lab} (${c.labVen})`;
+                text += `\n`;
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Timetable summary copied to clipboard!");
+                playSound('add');
+            });
+        }
+
+        // Setup All Event Listeners
+        function setupEventListeners() {
+            // Select changes - clean browsing without premature clash warnings
+            subjectSelect.addEventListener("change", updateOptionList);
+            optionSelect.addEventListener("change", clearConflictWarning);
+
+            // Add button
+            addBtn.addEventListener("click", addCourse);
+            clearBtn.addEventListener("click", clearAll);
+
+            // Plan management buttons
+            document.getElementById("addPlanBtn").addEventListener("click", createNewPlan);
+            document.getElementById("dupPlanBtn").addEventListener("click", duplicateCurrentPlan);
+            document.getElementById("renamePlanBtn").addEventListener("click", renameCurrentPlan);
+            document.getElementById("deletePlanBtn").addEventListener("click", () => deletePlan(activePlanId));
+
+            // Undo Toast action
+            document.getElementById("undoActionBtn").addEventListener("click", triggerUndo);
+
+            // Catalog triggers
+            document.getElementById("openCatalogBtn").addEventListener("click", () => openCatalogModal());
+            document.getElementById("closeCatalogBtn").addEventListener("click", () => {
+                document.getElementById("catalogModal").classList.add("hidden");
+            });
+            document.getElementById("catalogSearchInput").addEventListener("input", renderCatalogCards);
+            document.getElementById("hideClashingCheck").addEventListener("change", renderCatalogCards);
+
+            // Catalog filter pills
+            document.querySelectorAll(".catalog-filter-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    document.querySelectorAll(".catalog-filter-btn").forEach(b => {
+                        b.className = "catalog-filter-btn px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-600 hover:bg-slate-200";
+                    });
+                    btn.className = "catalog-filter-btn px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white";
+                    activeFilter = btn.dataset.filter;
+                    renderCatalogCards();
+                });
+            });
+
+            // Export Dropdown
+            const exportMenuBtn = document.getElementById("exportMenuBtn");
+            const exportDropdown = document.getElementById("exportDropdown");
+            exportMenuBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                exportDropdown.classList.toggle("hidden");
+            });
+            document.addEventListener("click", () => exportDropdown.classList.add("hidden"));
+
+            document.getElementById("exportImageBtn").addEventListener("click", exportPNG);
+            document.getElementById("exportIcsBtn").addEventListener("click", exportICS);
+            document.getElementById("exportPrintBtn").addEventListener("click", () => window.print());
+            document.getElementById("exportShareTextBtn").addEventListener("click", copyTextSchedule);
+
+            // Theme Toggle
+            const themeBtn = document.getElementById("themeToggleBtn");
+            const themeIcon = document.getElementById("themeIcon");
+            themeBtn.addEventListener("click", () => {
+                const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+                const nextTheme = currentTheme === "light" ? "dark" : "light";
+                document.documentElement.setAttribute("data-theme", nextTheme);
+                localStorage.setItem("timetable_theme_v2", nextTheme);
+                themeIcon.textContent = nextTheme === "dark" ? "☀️" : "🌓";
+                renderPlanTabs();
+                renderAll();
+                playSound('add');
+            });
+
+            // Sound Toggle
+            const soundBtn = document.getElementById("soundToggleBtn");
+            const soundIcon = document.getElementById("soundIcon");
+            soundBtn.addEventListener("click", () => {
+                soundEnabled = !soundEnabled;
+                soundIcon.textContent = soundEnabled ? "🔊" : "🔇";
+                if (soundEnabled) playSound('add');
+            });
+
+            // Course Inspector Close
+            document.getElementById("closeModalBtn").addEventListener("click", () => {
+                document.getElementById("courseModal").classList.add("hidden");
+            });
+
+            // Custom Modal triggers
+            document.getElementById("openCustomModalBtn").addEventListener("click", () => {
+                populateCustomSlotSelect();
+                document.getElementById("customModal").classList.remove("hidden");
+            });
+            document.getElementById("closeCustomModalBtn").addEventListener("click", () => {
+                document.getElementById("customModal").classList.add("hidden");
+            });
+            document.getElementById("saveCustomBlockBtn").addEventListener("click", saveCustomBlock);
+
+            // Click on table cell to show quick course suggestions
+            timetableBody.addEventListener("click", (e) => {
+                const td = e.target.closest("td.cell-slot");
+                if (!td) return;
+                const slotTokens = (td.dataset.slots || "").split(/\s+/).filter(Boolean);
+                if (slotTokens.length > 0) {
+                    openCatalogModal(slotTokens[0]);
+                }
+            });
+
+            // Keyboard Shortcuts
+            window.addEventListener("keydown", (e) => {
+                // Escape closes modals
+                if (e.key === "Escape") {
+                    document.getElementById("courseModal").classList.add("hidden");
+                    document.getElementById("catalogModal").classList.add("hidden");
+                    document.getElementById("clashModal").classList.add("hidden");
+                    document.getElementById("customModal").classList.add("hidden");
+                }
+                // Ctrl+Z Undo
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                    e.preventDefault();
+                    triggerUndo();
+                }
+                // / focuses catalog search
+                if (e.key === "/" && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                    e.preventDefault();
+                    openCatalogModal();
+                    setTimeout(() => document.getElementById("catalogSearchInput").focus(), 100);
+                }
+            });
+        }
+
+        // Custom Slot Selector Population
+        function populateCustomSlotSelect() {
+            const select = document.getElementById("customSlotSelect");
+            select.innerHTML = "";
+            PERIOD_TIMES.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.textContent = p.label;
+                select.appendChild(opt);
+            });
+
+            const colorContainer = document.getElementById("customColorPalette");
+            colorContainer.innerHTML = "";
+            PALETTE.slice(0, 6).forEach((col, idx) => {
+                const b = document.createElement("button");
+                b.className = `w-6 h-6 rounded-full border-2 transition transform hover:scale-110 ${idx === 0 ? 'border-slate-800' : 'border-transparent'}`;
+                b.style.backgroundColor = col.border;
+                b.onclick = () => {
+                    colorContainer.querySelectorAll('button').forEach(btn => btn.className = 'w-6 h-6 rounded-full border-2 border-transparent transition transform hover:scale-110');
+                    b.className = 'w-6 h-6 rounded-full border-2 border-slate-800 transition transform hover:scale-110';
+                    b.dataset.selected = "true";
+                };
+                colorContainer.appendChild(b);
+            });
+        }
+
+        // Save Custom Block
+        function saveCustomBlock() {
+            const title = (document.getElementById("customTitleInput").value || "").trim();
+            if (!title) {
+                alert("Please enter a title for the custom event.");
+                return;
+            }
+
+            const dayIdx = parseInt(document.getElementById("customDaySelect").value);
+            const periodIdx = parseInt(document.getElementById("customSlotSelect").value);
+            const venue = (document.getElementById("customVenueInput").value || "").trim() || "Custom";
+
+            const td = document.querySelector(`td[data-day="${dayIdx}"][data-period="${periodIdx}"]`);
+            const slotStr = td ? td.dataset.slots : "CUST";
+            const firstToken = slotStr.split(/\s+/)[0] || "CUST";
+
+            const customCourse = {
+                id: "custom_" + Date.now().toString() + "_" + Math.random().toString(36).substr(2, 5),
+                sub: title,
+                credits: 0,
+                type: "Custom Activity",
+                slot: firstToken,
+                lab: "",
+                fac: "Self / Personal",
+                ven: venue,
+                labVen: ""
+            };
+
+            const plan = getActivePlan();
+            plan.schedule.push(customCourse);
+            persistPlans();
+            renderAll();
+            document.getElementById("customModal").classList.add("hidden");
+            playSound('add');
+        }
+
+        // Run on load
+        window.addEventListener("DOMContentLoaded", init);
+
+    </script>
+</body>
+</html>
